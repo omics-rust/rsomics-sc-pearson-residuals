@@ -163,6 +163,11 @@ pub fn pearson_residuals(m: &CountMatrix, params: &PearsonParams) -> Result<Vec<
     // Initialise from the implicit-zero contribution: x_ij=0,
     //   r_ij = (0 - mu_ij) / denom_ij = -mu_ij / denom_ij
     let mut dense = vec![0.0f64; n_cells * n_genes];
+    // A gene-less matrix has an empty result; par_chunks_mut(0) would panic,
+    // and scanpy returns the defined (n_cells, 0) array here.
+    if n_genes == 0 {
+        return Ok(dense);
+    }
     dense
         .par_chunks_mut(n_genes)
         .enumerate()
@@ -391,6 +396,44 @@ mod tests {
             )
             .is_err()
         );
+    }
+
+    #[test]
+    fn zero_gene_matrix_returns_empty() {
+        // scanpy returns a defined (n_cells, 0) array; we must not panic in
+        // par_chunks_mut(0).
+        let m = CountMatrix {
+            n_genes: 0,
+            n_cells: 5,
+            entries: vec![],
+        };
+        let res = pearson_residuals(
+            &m,
+            &PearsonParams {
+                theta: 100.0,
+                clip: None,
+            },
+        )
+        .unwrap();
+        assert!(res.is_empty());
+    }
+
+    #[test]
+    fn zero_by_zero_matrix_returns_empty() {
+        let m = CountMatrix {
+            n_genes: 0,
+            n_cells: 0,
+            entries: vec![],
+        };
+        let res = pearson_residuals(
+            &m,
+            &PearsonParams {
+                theta: 100.0,
+                clip: None,
+            },
+        )
+        .unwrap();
+        assert!(res.is_empty());
     }
 
     #[test]

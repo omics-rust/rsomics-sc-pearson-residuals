@@ -1,6 +1,6 @@
 [package]
 name = "rsomics-sc-pearson-residuals"
-version = "0.1.0"
+version = "0.1.1"
 description = "Analytic Pearson residuals normalization of a single-cell count matrix — value-exact match of scanpy.experimental.pp.normalize_pearson_residuals"
 edition = "2024"
 rust-version = "1.91"
